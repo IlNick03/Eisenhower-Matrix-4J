@@ -4,9 +4,12 @@ import com.eisenhower.util.Quadrant;
 import java.util.*;
 
 /**
- *
+ * An Eisenhower matrix containing tasks defined by the user.
+ * 
  * @author Nicolas Scalese
  * @param <T>
+ * @see EisenhowerMatrixSet
+ * @see EisenhowerMatrixList
  */
 public interface EisenhowerMatrix<T extends Comparable<T>> {
     

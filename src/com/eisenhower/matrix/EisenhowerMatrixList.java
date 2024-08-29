@@ -4,7 +4,10 @@ import com.eisenhower.util.Quadrant;
 import java.util.*;
 
 /**
- *
+ * An Eisenhower matrix having in each quadrant a {@link List} of tasks defined by the user.
+ * <p>
+ * It is possible to have duplicated tasks both across quadrants and within the single quadrant.
+ * 
  * @author Nicolas Scalese
  * @param <T> Any class representing a task to put in the Eisenhower matrix
  */
@@ -21,7 +24,7 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
     // -------------------------------------------------------------------------
     
     @Override
-    public boolean putTask(T task, Quadrant quadrant) {
+    public final boolean putTask(T task, Quadrant quadrant) {
         Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
         return tasksInQuadrant.add(task);
     }
@@ -29,7 +32,7 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean removeTask(T task, Quadrant quadrant) {
+    public final boolean removeTask(T task, Quadrant quadrant) {
         Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
         int count = this.countEqualInQuadrant(task, quadrant);
         if (count == 0) {
@@ -42,7 +45,7 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
     }
 
     @Override
-    public boolean removeTask(T task) {
+    public final boolean removeTask(T task) {
         int count = this.countEqualInMatrix(task);
         if (count == 0) {
             return false;

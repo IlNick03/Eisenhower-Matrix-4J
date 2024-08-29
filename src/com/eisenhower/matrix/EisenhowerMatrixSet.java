@@ -4,7 +4,11 @@ import com.eisenhower.util.Quadrant;
 import java.util.*;
 
 /**
- *
+ * An Eisenhower matrix having in each quadrant a {@link Set} of tasks defined by the user.
+ * <p>
+ * It is recommended to use this implementation instead of {@link EisenhowerMatrixList}
+ * because it is impossibile to have duplicated tasks in all the matrix.
+ * 
  * @author Nicolas Scalese
  * @param <T> Any class representing a task to put in the Eisenhower matrix
  */
@@ -21,7 +25,7 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     // -------------------------------------------------------------------------
     
     @Override
-    public boolean putTask(T task, Quadrant quadrant) {
+    public final boolean putTask(T task, Quadrant quadrant) {
         if (this.containsTask(task)) {
             return false;
         }
@@ -32,19 +36,19 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean removeTask(T task, Quadrant quadrant) {
+    public final boolean removeTask(T task, Quadrant quadrant) {
         Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
         return tasksInQuadrant.remove(task);
     }
 
     @Override
-    public boolean removeTask(T task) {
+    public final boolean removeTask(T task) {
         return (super.getMap().remove(task) != null);
     }
     
     // -------------------------------------------------------------------------
     
-    public boolean isUrgent(T task) {
+    public final boolean isUrgent(T task) {
         if (!super.containsTask(task)) {
             throw new NoSuchElementException("Task not present anywhere in this Eisenhower matrix.");
         }
@@ -52,7 +56,7 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
         return quadrant.isUrgent();
    }
     
-    public boolean isImportant(T task) {
+    public final boolean isImportant(T task) {
         if (!super.containsTask(task)) {
             throw new NoSuchElementException("Task not present anywhere in this Eisenhower matrix.");
         }

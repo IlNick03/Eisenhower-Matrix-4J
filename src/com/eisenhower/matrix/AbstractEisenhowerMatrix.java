@@ -4,6 +4,9 @@ import com.eisenhower.util.Quadrant;
 import java.util.*;
 
 /**
+ * An abstract class for {@link EisenhowerMatrix class} which defines a common implementation
+ * across list-based ({@link EisenhowerMatrixList}) and set-based ({@link EisenhowerMatrixSet})
+ * matrix.
  *
  * @author Nicolas Scalese
  * @param <T> Any class representing a task to put in the Eisenhower matrix
