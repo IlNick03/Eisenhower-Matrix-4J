@@ -4,76 +4,54 @@ import com.eisenhower.util.Quadrant;
 import java.util.*;
 
 /**
- * An Eisenhower matrix having in each quadrant a {@link List} of tasks defined by the user.
+ * An Eisenhower matrix where each quadrant contains a {@link List} of tasks.
  * <p>
- * It is possible to have duplicated tasks both across quadrants and within the single quadrant.
- * 
- * @author Nicolas Scalese
- * @param <T> Any class representing a task to put in the Eisenhower matrix
+ * This implementation allows duplicated tasks both across quadrants and within a single quadrant.
+ *
+ * @param <T> Any class representing a task to be added to the Eisenhower matrix.
  */
 public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisenhowerMatrix<T> {
-    
+
     @Override
     protected void initializeMatrix() {
-        super.getMap().put(Quadrant.DO_IT, new ArrayList<>());
-        super.getMap().put(Quadrant.DELEGATE_IT, new ArrayList<>());
-        super.getMap().put(Quadrant.SCHEDULE_IT, new ArrayList<>());
-        super.getMap().put(Quadrant.DELETE_IT, new ArrayList<>());
+        super.put(Quadrant.DO_IT_NOW, new ArrayList<>());
+        super.put(Quadrant.DELEGATE_OR_OPTIMIZE_IT, new ArrayList<>());
+        super.put(Quadrant.SCHEDULE_IT, new ArrayList<>());
+        super.put(Quadrant.ELIMINATE_IT, new ArrayList<>());
     }
 
     // -------------------------------------------------------------------------
     
     @Override
     public final boolean putTask(T task, Quadrant quadrant) {
-        Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         return tasksInQuadrant.add(task);
     }
-    
-    // -------------------------------------------------------------------------
 
     @Override
     public final boolean removeTask(T task, Quadrant quadrant) {
-        Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         int count = this.countEqualInQuadrant(task, quadrant);
         if (count == 0) {
             return false;
         }
+        boolean removed = true;
         for (int i = 0; i < count; i++) {
-            return tasksInQuadrant.remove(task);
+            if (!tasksInQuadrant.remove(task)) {
+                removed = false;
+            }
         }
-        return true;
+        return removed;
     }
 
-    @Override
-    public final boolean removeTask(T task) {
-        int count = this.countEqualInMatrix(task);
-        if (count == 0) {
-            return false;
-        }
-        for (int i = 0; i < count; i++) {
-            super.getMap().remove(task);
-        }
-        return true;
-    }
-    
-    private int countEqualInMatrix(T task) {
+    private int countEqualInQuadrant(T task, Quadrant quadrant) {
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         int count = 0;
-        for (Quadrant quadrant : super.getMap().keySet()) {
-            Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
-            List<T> duplicatedTasks = tasksInQuadrant.stream()
-                            .filter(t -> Objects.equals(task, t))
-                            .toList();
-            count += duplicatedTasks.size();
+        for (T t : tasksInQuadrant) {
+            if (Objects.equals(task, t)) {
+                count++;
+            }
         }
         return count;
     }
-    
-    private int countEqualInQuadrant(T task, Quadrant quadrant) {
-        Collection<T> tasksInQuadrant = super.getMap().get(quadrant);
-        List<T> duplicatedTasks = tasksInQuadrant.stream()
-                        .filter(t -> Objects.equals(task, t))
-                        .toList();
-        return duplicatedTasks.size();
-    }
-    
 }

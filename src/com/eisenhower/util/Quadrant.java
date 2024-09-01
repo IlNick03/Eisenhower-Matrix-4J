@@ -1,21 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Enum.java to edit this template
- */
 package com.eisenhower.util;
 
 import java.util.*;
 
 /**
- *
- * @author Nicolas
+ * Enum representing the four quadrants of the Eisenhower matrix.
+ * Each quadrant is defined by its urgency and importance.
  */
 public enum Quadrant implements Comparable<Quadrant> {
     
-    DO_IT(true, true),
-    DELEGATE_IT(true, false),
+    DO_IT_NOW(true, true),
+    DELEGATE_OR_OPTIMIZE_IT(true, false),
     SCHEDULE_IT(false, true),
-    DELETE_IT(false, false);
+    ELIMINATE_IT(false, false);
     
     private boolean urgent;
     private boolean important;
@@ -25,14 +21,29 @@ public enum Quadrant implements Comparable<Quadrant> {
         this.important = important;
     }
     
+    /**
+     * Returns a list of quadrants ordered by their priority in the Eisenhower matrix.
+     * 
+     * @return A list of quadrants ordered by priority.
+     */
     public static List<Quadrant> linearPrioritySorting() {
-        return Arrays.asList(DO_IT, DELEGATE_IT, SCHEDULE_IT, DELETE_IT);
+        return Arrays.asList(DO_IT_NOW, DELEGATE_OR_OPTIMIZE_IT, SCHEDULE_IT, ELIMINATE_IT);
     }
     
+    /**
+     * Checks if the quadrant is urgent.
+     * 
+     * @return {@code true} if the quadrant is urgent, {@code false} otherwise.
+     */
     public boolean isUrgent() {
         return urgent;
     }
     
+    /**
+     * Checks if the quadrant is important.
+     * 
+     * @return {@code true} if the quadrant is important, {@code false} otherwise.
+     */
     public boolean isImportant() {
         return important;
     }
