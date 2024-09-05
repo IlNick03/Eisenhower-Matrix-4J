@@ -29,6 +29,10 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     
     @Override
     public final boolean putTask(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         if (this.containsTask(task)) {
             return false;
         }
@@ -40,6 +44,10 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
 
     @Override
     public final boolean removeTask(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         return tasksInQuadrant.remove(task);
     }
@@ -47,6 +55,10 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     // -------------------------------------------------------------------------
     
     public final boolean isUrgent(T task) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         if (!super.containsTask(task)) {
             throw new NoSuchElementException("Task not present anywhere in this Eisenhower matrix.");
         }
@@ -55,6 +67,10 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     }
 
     public final boolean isImportant(T task) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         if (!super.containsTask(task)) {
             throw new NoSuchElementException("Task not present anywhere in this Eisenhower matrix.");
         }

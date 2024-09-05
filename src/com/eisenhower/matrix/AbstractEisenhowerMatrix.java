@@ -12,20 +12,22 @@ import java.util.*;
  */
 public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implements EisenhowerMatrix<T> {
     
-    private Map<Quadrant, Collection<T>> quadrants = new HashMap<>();
+    private final Map<Quadrant, Collection<T>> quadrantsMapping = new HashMap<>();
     
     /**
      * Constructs an instance of {@link AbstractEisenhowerMatrix} and initializes the matrix.
      * @see #initializeMatrix() 
      */
     public AbstractEisenhowerMatrix() {
-        initializeMatrix();
+        this.initializeMatrix();
     }
     
     /**
      * Initializes the matrix: each quadrant is associated with an empty {@link Collection}
      * of tasks. 
      * Concrete subclasses must provide their own implementation.
+     * 
+     * @see #put(com.eisenhower.util.Quadrant, java.util.Collection) 
      */
     protected abstract void initializeMatrix();
     
@@ -42,21 +44,21 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
      * @return 
      */
     protected final Collection<T> put(Quadrant key, Collection<T> tasks) {
-        return quadrants.put(key, tasks);
+        return quadrantsMapping.put(key, tasks);
     }
     
     @Override
     public final Map<Quadrant, Collection<T>> toMap() {
-        return new HashMap<>(quadrants);
+        return new HashMap<>(quadrantsMapping);
     }
     
     @Override
     public final Collection<T>[][] toMatrix() {
         Collection<T>[][] matrix = new Collection[2][2];
-//        matrix[0][0] = quadrants.get(Quadrant.DO_IT_NOW);
-//        matrix[0][1] = quadrants.get(Quadrant.DELEGATE_OR_OPTIMIZE_IT);
-//        matrix[1][0] = quadrants.get(Quadrant.SCHEDULE_IT);
-//        matrix[1][1] = quadrants.get(Quadrant.ELIMINATE_IT);
+//        matrix[0][0] = quadrantsMapping.get(Quadrant.DO_IT_NOW);
+//        matrix[0][1] = quadrantsMapping.get(Quadrant.DELEGATE_OR_OPTIMIZE_IT);
+//        matrix[1][0] = quadrantsMapping.get(Quadrant.SCHEDULE_IT);
+//        matrix[1][1] = quadrantsMapping.get(Quadrant.ELIMINATE_IT);
 
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             int invertedUrgentNumber = quadrant.isUrgent() ? 0 : 1;
@@ -79,13 +81,13 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
             return false;
         }
         final AbstractEisenhowerMatrix<T> other = (AbstractEisenhowerMatrix<T>) obj;
-        return Objects.equals(this.quadrants, other.quadrants);
+        return Objects.equals(this.quadrantsMapping, other.quadrantsMapping);
     }
     
     @Override
     public final int hashCode() {
         int hash = 7;
-        hash = 61 * hash + Objects.hashCode(this.quadrants);
+        hash = 61 * hash + Objects.hashCode(this.quadrantsMapping);
         return hash;
     }
     
@@ -93,16 +95,28 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final boolean putTask(T task, boolean urgent, boolean important) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         return this.putTask(task, Quadrant.getQuadrant(urgent, important));
     }
     
     @Override
     public final boolean putAll(boolean urgent, boolean important, Collection<? extends T> tasks) {
+        if (tasks == null) {
+            throw new NullPointerException("Null pointer for tasks collection.");
+        }
+        
         return this.putAll(Quadrant.getQuadrant(urgent, important), tasks);
     }
     
     @Override
     public final void putIfAbsentInQuadrant(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         if (!this.containsTask(task, quadrant)) {
             Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
             if (tasksInThisQuadrant == null) {
@@ -114,11 +128,19 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final void putIfAbsentInQuadrant(T task, boolean urgent, boolean important) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         this.putIfAbsentInQuadrant(task, Quadrant.getQuadrant(urgent, important));
     }
     
     @Override
     public final void putIfAbsentInMatrix(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         if (!this.containsTask(task)) {
             Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
             if (tasksInThisQuadrant == null) {
@@ -130,11 +152,19 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final void putIfAbsentInMatrix(T task, boolean urgent, boolean important) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         this.putIfAbsentInMatrix(task, Quadrant.getQuadrant(urgent, important));
     }
     
     @Override
     public final boolean putAll(Quadrant quadrant, Collection<? extends T> tasks) {
+        if ((tasks == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
         if (tasksInThisQuadrant == null) {
             throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
@@ -144,12 +174,19 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final boolean putAll(Map<Quadrant, Collection<? extends T>> eisenhowerMap) {
+        if (eisenhowerMap == null) {
+            throw new NullPointerException("Null pointer for Eisenhower quadrants' map.");
+        }
+        if (eisenhowerMap.isEmpty()) {
+            return false;
+        }
+        
         boolean modified = true;
-        for (Quadrant quadrant : quadrants.keySet()) {
+        for (Quadrant quadrant : quadrantsMapping.keySet()) {
             Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
             Collection<? extends T> tasksInOtherQuadrant = eisenhowerMap.get(quadrant);
-            if (tasksInThisQuadrant == null || tasksInOtherQuadrant == null) {
-                throw new NullPointerException("One of these quadrants hasn't been initialized with a proper collection of tasks.");
+            if (tasksInOtherQuadrant == null) {
+                break;
             }
             if (!tasksInThisQuadrant.addAll(tasksInOtherQuadrant)) {
                 modified = false;
@@ -162,7 +199,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final Collection<T> getTasks(Quadrant quadrant) {
-        return quadrants.get(quadrant);
+        return quadrantsMapping.get(quadrant);
     }
     
     @Override
@@ -172,6 +209,10 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final List<T> getTasksSorted(Quadrant quadrant) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+            
         List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
         Collections.sort(tasksList);
         return tasksList;
@@ -184,6 +225,10 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
 
     @Override
     public final List<T> getTasksSorted(Quadrant quadrant, Comparator<T> comparator) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+        
         List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
         Collections.sort(tasksList, comparator);
         return tasksList;
@@ -197,7 +242,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     @Override
     public final Set<T> getAllTasks() {
         Set<T> allTasks = new HashSet<>();
-        for (Collection<T> tasksInQuadrant : quadrants.values()) {
+        for (Collection<T> tasksInQuadrant : quadrantsMapping.values()) {
             allTasks.addAll(tasksInQuadrant);
         }
         return allTasks;
@@ -238,6 +283,10 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final Quadrant getQuadrant(T task) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
                 return quadrant;
@@ -248,6 +297,10 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
 
     @Override
     public final Set<Quadrant> getQuadrants(T task) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
         Set<Quadrant> quadrantsHavingTask = new HashSet<>();
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
@@ -261,12 +314,16 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final boolean containsTask(T task) {
-        return quadrants.values().stream()
+        return quadrantsMapping.values().stream()
                     .anyMatch(tasks -> tasks.contains(task));
     }
 
     @Override
     public final boolean containsTask(T task, Quadrant quadrant) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+        
         return this.getTasks(quadrant).contains(task);
     }
     
@@ -297,6 +354,10 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final void clearQuadrant(Quadrant quadrant) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+        
         Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         if (tasksInQuadrant != null) {
             tasksInQuadrant.clear();

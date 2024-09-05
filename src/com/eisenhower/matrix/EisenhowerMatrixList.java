@@ -29,12 +29,94 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
     
     @Override
     public final boolean putTask(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         return tasksInQuadrant.add(task);
     }
+    
+    // -------------------------------------------------------------------------
+    
+    public final T getTask(Quadrant quadrant, int index) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+        
+        List<T> tasksInQuadrant = (List<T>) this.getTasks(quadrant);
+        try {
+            return tasksInQuadrant.get(index);
+        } catch (IndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+    
+    public final T getTask(boolean urgent, boolean important, int index) {
+        try {
+            return this.getTask(Quadrant.getQuadrant(urgent, important), index);
+        } catch (IndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+    
+    
+    public final List<T> sublist(Quadrant quadrant, int fromIndex, int toIndex) {
+        if (quadrant == null) {
+            throw new NullPointerException("Quadrant is null.");
+        }
+        
+        List<T> tasksInQuadrant = (List<T>) this.getTasks(quadrant);
+        try {
+            return tasksInQuadrant.subList(fromIndex, toIndex);
+        } catch (IndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+    
+    public final List<T> sublist(boolean urgent, boolean important, int fromIndex, int toIndex) {
+        try {
+            return this.sublist(Quadrant.getQuadrant(urgent, important), fromIndex, toIndex);
+        } catch (IndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+    
+    // -------------------------------------------------------------------------
+    
+    public final T setTask(T task, Quadrant quadrant, int index) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
+        List<T> tasksInQuadrant = (List<T>) this.getTasks(quadrant);
+        try {
+            return tasksInQuadrant.set(index, task);
+        } catch (RuntimeException ex) {
+            throw ex;
+        }
+    }
+    
+    public final T setTask(T task, boolean urgent, boolean important, int index) {
+        if (task == null) {
+            throw new NullPointerException("Task is null.");
+        }
+        
+        try {
+            return this.setTask(task,Quadrant.getQuadrant(urgent, important), index);
+        } catch (RuntimeException ex) {
+            throw ex;
+        }
+    }
+            
+    // -------------------------------------------------------------------------
 
     @Override
     public final boolean removeTask(T task, Quadrant quadrant) {
+        if ((task == null) || (quadrant == null)) {
+            throw new NullPointerException("Null argument(s) for this function.");
+        }
+        
         Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         int count = this.countEqualInQuadrant(task, quadrant);
         if (count == 0) {
