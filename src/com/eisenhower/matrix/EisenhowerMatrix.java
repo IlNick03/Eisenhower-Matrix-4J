@@ -28,12 +28,16 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a 2x2 array of collections of tasks.
      */
     Collection<T>[][] toMatrix();
+    
+    Class getTypeOfCollections();
 
     @Override
     boolean equals(Object obj);
 
     @Override
     int hashCode();
+    
+    // -------------------------------------------------------------------------
 
     /**
      * Adds a task to the specified quadrant in the matrix.
@@ -43,6 +47,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return true if the task was added successfully, false otherwise.
      */
     boolean putTask(T task, Quadrant quadrant);
+    
+    boolean putTask(T task, boolean urgent, boolean important);
 
     /**
      * Adds all tasks to the specified quadrant in the matrix.
@@ -52,6 +58,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return true if the tasks were added successfully, false otherwise.
      */
     boolean putAll(Quadrant quadrant, Collection<? extends T> tasks);
+    
+    boolean putAll(boolean urgent, boolean important, Collection<? extends T> tasks);
 
     /**
      * Adds all tasks from a map of quadrants to collections of tasks to the matrix.
@@ -68,6 +76,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @param quadrant the quadrant where the task should be added.
      */
     void putIfAbsentInQuadrant(T task, Quadrant quadrant);
+    
+    void putIfAbsentInQuadrant(T task, boolean urgent, boolean important);
 
     /**
      * Adds a task to the matrix only if it is not already present in any quadrant.
@@ -76,7 +86,11 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @param quadrant the quadrant where the task should be added if absent.
      */
     void putIfAbsentInMatrix(T task, Quadrant quadrant);
+    
+    void putIfAbsentInMatrix(T task, boolean urgent, boolean important);
 
+    // -------------------------------------------------------------------------
+    
     /**
      * Retrieves all tasks from the specified quadrant.
      *
@@ -84,6 +98,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a collection of tasks in the specified quadrant.
      */
     Collection<T> getTasks(Quadrant quadrant);
+    
+    Collection<T> getTasks(boolean urgent, boolean important);
 
     /**
      * Retrieves and sorts all tasks from the specified quadrant using the natural ordering.
@@ -92,6 +108,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a list of sorted tasks in the specified quadrant.
      */
     List<T> getTasksSorted(Quadrant quadrant);
+    
+    List<T> getTasksSorted(boolean urgent, boolean important);
 
     /**
      * Retrieves and sorts all tasks from the specified quadrant using the given comparator.
@@ -101,7 +119,9 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a list of sorted tasks in the specified quadrant.
      */
     List<T> getTasksSorted(Quadrant quadrant, Comparator<T> comparator);
-
+    
+    List<T> getTasksSorted(boolean urgent, boolean important, Comparator<T> comparator);
+    
     /**
      * Retrieves all tasks from all quadrants.
      *
@@ -123,6 +143,14 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a list of all tasks in the matrix sorted by quadrant priority and using the given comparator.
      */
     List<T> getAllTasksSorted(Comparator<T> comparator);
+    
+    /**
+     * 
+     * @param quadrantComparators
+     * @return 
+     * @throws UnsupportedOperationException if the map doesn't contain all 4 comparators for each quadrant.
+     */
+    List<T> getAllTasksSorted(Map<Quadrant, Comparator<T>> quadrantComparators);
 
     /**
      * Retrieves the quadrant where the given task is located.
@@ -139,6 +167,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return a set of quadrants containing the task.
      */
     Set<Quadrant> getQuadrants(T task);
+    
+    // -------------------------------------------------------------------------
 
     /**
      * Checks if a task is present in any quadrant.
@@ -156,6 +186,10 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return true if the task is present in the quadrant, false otherwise.
      */
     boolean containsTask(T task, Quadrant quadrant);
+    
+    boolean containsTask(T task, boolean urgent, boolean important);
+    
+    // -------------------------------------------------------------------------
 
     /**
      * Removes a task from the specified quadrant.
@@ -165,6 +199,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return true if the task was removed successfully, false otherwise.
      */
     boolean removeTask(T task, Quadrant quadrant);
+    
+    boolean removeTask(T task, boolean urgent, boolean important);
 
     /**
      * Removes a task from all quadrants.
@@ -173,6 +209,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @return true if the task was removed successfully, false otherwise.
      */
     boolean removeTask(T task);
+    
+    // -------------------------------------------------------------------------
 
     /**
      * Clears all tasks from the specified quadrant.
@@ -180,6 +218,8 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * @param quadrant the quadrant to be cleared.
      */
     void clearQuadrant(Quadrant quadrant);
+    
+    void clearQuadrant(boolean urgent, boolean important);
 
     /**
      * Clears all tasks from the entire matrix.

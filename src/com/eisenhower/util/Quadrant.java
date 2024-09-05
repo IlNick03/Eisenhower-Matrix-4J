@@ -9,17 +9,19 @@ import java.util.*;
 public enum Quadrant implements Comparable<Quadrant> {
     
     DO_IT_NOW(true, true),
-    DELEGATE_OR_OPTIMIZE_IT(true, false),
     SCHEDULE_IT(false, true),
+    DELEGATE_OR_OPTIMIZE_IT(true, false),
     ELIMINATE_IT(false, false);
     
-    private boolean urgent;
-    private boolean important;
+    private final boolean urgent;
+    private final boolean important;
     
     private Quadrant(boolean urgent, boolean important) {
         this.urgent = urgent;
         this.important = important;
     }
+    
+    // -------------------------------------------------------------------------
     
     /**
      * Returns a list of quadrants ordered by their priority in the Eisenhower matrix.
@@ -29,6 +31,44 @@ public enum Quadrant implements Comparable<Quadrant> {
     public static List<Quadrant> linearPrioritySorting() {
         return Arrays.asList(DO_IT_NOW, DELEGATE_OR_OPTIMIZE_IT, SCHEDULE_IT, ELIMINATE_IT);
     }
+    
+    public static List<Quadrant> classicalSortingByNumber() {
+        return Arrays.asList(DO_IT_NOW, SCHEDULE_IT, DELEGATE_OR_OPTIMIZE_IT, ELIMINATE_IT);
+    }
+    
+    public static Quadrant getQuadrant(boolean urgent, boolean important) {
+        if (urgent && important) {
+            return DO_IT_NOW;
+        } 
+        if (!urgent && important) {
+            return SCHEDULE_IT;
+        }
+        if (urgent && !important) {
+            return DELEGATE_OR_OPTIMIZE_IT;
+        }
+        // not urgent, nor important
+        return ELIMINATE_IT;
+    }
+    
+    /**
+     * 
+     * @param quadrantNumber
+     * @return 
+     * @throws IndexOutOfBoundsException if the index is out of the range: 1-4. 
+     */
+    public static Quadrant getQuadrant(int quadrantNumber) {
+        return switch (quadrantNumber) {
+            case 1 -> DO_IT_NOW;
+            case 2 -> DO_IT_NOW;
+            case 3 -> DO_IT_NOW;
+            case 4 -> DO_IT_NOW;
+            default -> {
+                throw new IndexOutOfBoundsException("No Eisenhower quadrant for such index.");
+            }
+        };
+    }
+    
+    // -------------------------------------------------------------------------
     
     /**
      * Checks if the quadrant is urgent.
@@ -46,5 +86,9 @@ public enum Quadrant implements Comparable<Quadrant> {
      */
     public boolean isImportant() {
         return important;
+    }
+    
+    public int getQuadrantNumber() {
+        return super.ordinal() + 1;
     }
 }

@@ -19,6 +19,11 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
         super.put(Quadrant.SCHEDULE_IT, new ArrayList<>());
         super.put(Quadrant.ELIMINATE_IT, new ArrayList<>());
     }
+    
+    @Override
+    public final Class getTypeOfCollections() {
+        return List.class;
+    }
 
     // -------------------------------------------------------------------------
     

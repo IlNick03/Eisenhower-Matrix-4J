@@ -30,33 +30,45 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     protected abstract void initializeMatrix();
     
     /**
-     * Puts 
+     * Puts a {@link Collection} of tasks in the given Eisenhower' quadrant.
+     * This method should be used by concrete classes for initialize each matrix' quadrant.
+     * 
+     * @apiNote For containing tasks within, concrete classes <b>must</b> choose the same 
+     *          implementation of {@link Collection} for all quadrants, for guarantee 
+     *          consistency in operations and equality in performance.
      * 
      * @param key
      * @param tasks
      * @return 
      */
-    protected Collection<T> put(Quadrant key, Collection<T> tasks) {
+    protected final Collection<T> put(Quadrant key, Collection<T> tasks) {
         return quadrants.put(key, tasks);
     }
     
     @Override
-    public Map<Quadrant, Collection<T>> toMap() {
+    public final Map<Quadrant, Collection<T>> toMap() {
         return new HashMap<>(quadrants);
     }
     
     @Override
-    public Collection<T>[][] toMatrix() {
+    public final Collection<T>[][] toMatrix() {
         Collection<T>[][] matrix = new Collection[2][2];
-        matrix[0][0] = quadrants.get(Quadrant.DO_IT_NOW);
-        matrix[0][1] = quadrants.get(Quadrant.SCHEDULE_IT);
-        matrix[1][0] = quadrants.get(Quadrant.DELEGATE_OR_OPTIMIZE_IT);
-        matrix[1][1] = quadrants.get(Quadrant.ELIMINATE_IT);
+//        matrix[0][0] = quadrants.get(Quadrant.DO_IT_NOW);
+//        matrix[0][1] = quadrants.get(Quadrant.DELEGATE_OR_OPTIMIZE_IT);
+//        matrix[1][0] = quadrants.get(Quadrant.SCHEDULE_IT);
+//        matrix[1][1] = quadrants.get(Quadrant.ELIMINATE_IT);
+
+        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+            int invertedUrgentNumber = quadrant.isUrgent() ? 0 : 1;
+            int invertedImportantNumber = quadrant.isImportant() ? 0 : 1;
+            
+            matrix[invertedUrgentNumber][invertedImportantNumber] = this.getTasks(quadrant);
+        }
         return matrix;
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -71,7 +83,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     }
     
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         int hash = 7;
         hash = 61 * hash + Objects.hashCode(this.quadrants);
         return hash;
@@ -80,7 +92,33 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     // -------------------------------------------------------------------------
     
     @Override
-    public void putIfAbsentInMatrix(T task, Quadrant quadrant) {
+    public final boolean putTask(T task, boolean urgent, boolean important) {
+        return this.putTask(task, Quadrant.getQuadrant(urgent, important));
+    }
+    
+    @Override
+    public final boolean putAll(boolean urgent, boolean important, Collection<? extends T> tasks) {
+        return this.putAll(Quadrant.getQuadrant(urgent, important), tasks);
+    }
+    
+    @Override
+    public final void putIfAbsentInQuadrant(T task, Quadrant quadrant) {
+        if (!this.containsTask(task, quadrant)) {
+            Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
+            if (tasksInThisQuadrant == null) {
+                throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
+            }
+            tasksInThisQuadrant.add(task);
+        }
+    }
+    
+    @Override
+    public final void putIfAbsentInQuadrant(T task, boolean urgent, boolean important) {
+        this.putIfAbsentInQuadrant(task, Quadrant.getQuadrant(urgent, important));
+    }
+    
+    @Override
+    public final void putIfAbsentInMatrix(T task, Quadrant quadrant) {
         if (!this.containsTask(task)) {
             Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
             if (tasksInThisQuadrant == null) {
@@ -91,14 +129,8 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     }
     
     @Override
-    public void putIfAbsentInQuadrant(T task, Quadrant quadrant) {
-        if (!this.containsTask(task, quadrant)) {
-            Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
-            if (tasksInThisQuadrant == null) {
-                throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
-            }
-            tasksInThisQuadrant.add(task);
-        }
+    public final void putIfAbsentInMatrix(T task, boolean urgent, boolean important) {
+        this.putIfAbsentInMatrix(task, Quadrant.getQuadrant(urgent, important));
     }
     
     @Override
@@ -121,7 +153,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
             }
             if (!tasksInThisQuadrant.addAll(tasksInOtherQuadrant)) {
                 modified = false;
-            };
+            }
         }
         return modified;
     }
@@ -134,10 +166,20 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     }
     
     @Override
+    public final Collection<T> getTasks(boolean urgent, boolean important) {
+        return this.getTasks(Quadrant.getQuadrant(urgent, important));
+    }
+    
+    @Override
     public final List<T> getTasksSorted(Quadrant quadrant) {
         List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
         Collections.sort(tasksList);
         return tasksList;
+    }
+    
+    @Override
+    public final List<T> getTasksSorted(boolean urgent, boolean important) {
+        return this.getTasksSorted(Quadrant.getQuadrant(urgent, important));
     }
 
     @Override
@@ -145,6 +187,11 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
         Collections.sort(tasksList, comparator);
         return tasksList;
+    }
+    
+    @Override
+    public final List<T> getTasksSorted(boolean urgent, boolean important, Comparator<T> comparator) {
+        return this.getTasksSorted(Quadrant.getQuadrant(urgent, important), comparator);
     }
     
     @Override
@@ -174,9 +221,23 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         return allTasksList;
     }
     
+    @Override
+    public final List<T> getAllTasksSorted(Map<Quadrant, Comparator<T>> quadrantComparators) {
+        if (quadrantComparators.size() != 4) {
+            throw new UnsupportedOperationException("Comparator(s) missing for 1 or more Eisenhower quadrants.");
+        }
+        
+        List<T> allTasksList = new ArrayList<>();
+        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+            Comparator<T> specificComparator = quadrantComparators.get(quadrant);
+            allTasksList.addAll(this.getTasksSorted(quadrant, specificComparator));
+        }
+        return allTasksList;
+    }
+    
     
     @Override
-    public Quadrant getQuadrant(T task) {
+    public final Quadrant getQuadrant(T task) {
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
                 return quadrant;
@@ -186,7 +247,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     }
 
     @Override
-    public Set<Quadrant> getQuadrants(T task) {
+    public final Set<Quadrant> getQuadrants(T task) {
         Set<Quadrant> quadrantsHavingTask = new HashSet<>();
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
@@ -209,6 +270,11 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         return this.getTasks(quadrant).contains(task);
     }
     
+    @Override
+    public final boolean containsTask(T task, boolean urgent, boolean important) {
+        return this.containsTask(task, Quadrant.getQuadrant(urgent, important));
+    }
+    
     // -------------------------------------------------------------------------
     
     @Override
@@ -217,9 +283,14 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (!this.removeTask(task, quadrant)) {
                 removed = false;
-            };
+            }
         }
         return removed;
+    }
+    
+    @Override
+    public final boolean removeTask(T task, boolean urgent, boolean important) {
+        return this.removeTask(task, Quadrant.getQuadrant(urgent, important));
     }
     
     // -------------------------------------------------------------------------
@@ -230,6 +301,11 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         if (tasksInQuadrant != null) {
             tasksInQuadrant.clear();
         }
+    }
+    
+    @Override
+    public final void clearQuadrant(boolean urgent, boolean important) {
+        this.clearQuadrant(Quadrant.getQuadrant(urgent, important));
     }
     
     @Override

@@ -19,6 +19,11 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
         super.put(Quadrant.SCHEDULE_IT, new HashSet<>());
         super.put(Quadrant.ELIMINATE_IT, new HashSet<>());
     }
+    
+    @Override
+    public final Class getTypeOfCollections() {
+        return Set.class;
+    }
 
     // -------------------------------------------------------------------------
     
