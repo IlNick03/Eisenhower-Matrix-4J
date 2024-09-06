@@ -5,66 +5,68 @@ import java.util.*;
 
 /**
  * Abstract implementation of the {@link EisenhowerMatrix} interface.
- * Provides a common base for list-based ({@link EisenhowerMatrixList}) and 
- * set-based ({@link EisenhowerMatrixSet}) matrix implementations.
+ * Provides a common foundation for different types of matrix implementations,
+ * such as list-based ({@link EisenhowerMatrixList}) and set-based ({@link EisenhowerMatrixSet}) matrices.
  *
- * @param <T> The type of task stored in the matrix.
+ * <p>This class manages the internal mapping of quadrants to their respective collections of tasks.
+ * Concrete subclasses must define how the quadrants are initialized by specifying the type of 
+ * {@link Collection} used for storing tasks in each quadrant.</p>
+ *
+ * @param <T> the type of task stored in the matrix.
  */
 public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implements EisenhowerMatrix<T> {
     
-    private final Map<Quadrant, Collection<T>> quadrantsMapping = new HashMap<>();
+    private final Map<Quadrant, Collection<T>> quadrantTaskMap = new HashMap<>();
     
     /**
      * Constructs an instance of {@link AbstractEisenhowerMatrix} and initializes the matrix.
-     * @see #initializeMatrix() 
+     *
+     * @see #initializeMatrix()
      */
     public AbstractEisenhowerMatrix() {
         this.initializeMatrix();
     }
     
     /**
-     * Initializes the matrix: each quadrant is associated with an empty {@link Collection}
-     * of tasks. 
-     * Concrete subclasses must provide their own implementation.
-     * 
-     * @see #put(com.eisenhower.util.Quadrant, java.util.Collection) 
+     * Initializes the matrix by associating each quadrant with an empty {@link Collection} of tasks.
+     * Concrete subclasses must provide their own implementation specifying the type of collection.
+     *
+     * @see #put(Quadrant, Collection)
      */
     protected abstract void initializeMatrix();
     
     /**
-     * Puts a {@link Collection} of tasks in the given Eisenhower' quadrant.
-     * This method should be used by concrete classes for initialize each matrix' quadrant.
-     * 
-     * @apiNote For containing tasks within, concrete classes <b>must</b> choose the same 
-     *          implementation of {@link Collection} for all quadrants, for guarantee 
-     *          consistency in operations and equality in performance.
-     * 
-     * @param key
-     * @param tasks
-     * @return 
+     * Associates a {@link Collection} of tasks with the given quadrant.
+     * This method should be used by concrete classes during the initialization of each matrix quadrant.
+     *
+     * <p><b>Note:</b> All quadrants must use the same type of {@link Collection} implementation to ensure
+     * consistency in operations and performance.</p>
+     *
+     * @param quadrant the quadrant to associate with the tasks.
+     * @param tasks    the collection of tasks to associate with the quadrant.
+     * @return the previous collection of tasks associated with the quadrant, or {@code null} if none existed.
+     * @throws NullPointerException if {@code quadrant} or {@code tasks} is {@code null}.
      */
-    protected final Collection<T> put(Quadrant key, Collection<T> tasks) {
-        return quadrantsMapping.put(key, tasks);
+    protected final Collection<T> put(Quadrant quadrant, Collection<T> tasks) {
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        Objects.requireNonNull(tasks, "Tasks collection cannot be null.");
+        return quadrantTaskMap.put(quadrant, tasks);
     }
     
     @Override
     public final Map<Quadrant, Collection<T>> toMap() {
-        return new HashMap<>(quadrantsMapping);
+        return new HashMap<>(quadrantTaskMap);
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public final Collection<T>[][] toMatrix() {
         Collection<T>[][] matrix = new Collection[2][2];
-//        matrix[0][0] = quadrantsMapping.get(Quadrant.DO_IT_NOW);
-//        matrix[0][1] = quadrantsMapping.get(Quadrant.DELEGATE_OR_OPTIMIZE_IT);
-//        matrix[1][0] = quadrantsMapping.get(Quadrant.SCHEDULE_IT);
-//        matrix[1][1] = quadrantsMapping.get(Quadrant.ELIMINATE_IT);
-
+        
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            int invertedUrgentNumber = quadrant.isUrgent() ? 0 : 1;
-            int invertedImportantNumber = quadrant.isImportant() ? 0 : 1;
-            
-            matrix[invertedUrgentNumber][invertedImportantNumber] = this.getTasks(quadrant);
+            int row = quadrant.isUrgent() ? 0 : 1;
+            int col = quadrant.isImportant() ? 0 : 1;
+            matrix[row][col] = this.getTasks(quadrant);
         }
         return matrix;
     }
@@ -74,122 +76,102 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
+        if (obj == null || !(obj instanceof AbstractEisenhowerMatrix)) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final AbstractEisenhowerMatrix<T> other = (AbstractEisenhowerMatrix<T>) obj;
-        return Objects.equals(this.quadrantsMapping, other.quadrantsMapping);
+        final AbstractEisenhowerMatrix<?> other = (AbstractEisenhowerMatrix<?>) obj;
+        return Objects.equals(this.quadrantTaskMap, other.quadrantTaskMap);
     }
     
     @Override
     public final int hashCode() {
-        int hash = 7;
-        hash = 61 * hash + Objects.hashCode(this.quadrantsMapping);
-        return hash;
+        return Objects.hash(quadrantTaskMap);
     }
     
     // -------------------------------------------------------------------------
     
     @Override
-    public final boolean putTask(T task, boolean urgent, boolean important) {
-        if (task == null) {
-            throw new NullPointerException("Task is null.");
-        }
-        
-        return this.putTask(task, Quadrant.getQuadrant(urgent, important));
+    public final boolean addTask(T task, boolean urgent, boolean important) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.addTask(task, quadrant);
     }
     
     @Override
-    public final boolean putAll(boolean urgent, boolean important, Collection<? extends T> tasks) {
-        if (tasks == null) {
-            throw new NullPointerException("Null pointer for tasks collection.");
-        }
-        
-        return this.putAll(Quadrant.getQuadrant(urgent, important), tasks);
+    public final boolean addAllTasks(boolean urgent, boolean important, Collection<? extends T> tasks) {
+        Objects.requireNonNull(tasks, "Tasks collection cannot be null.");
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.addAllTasks(quadrant, tasks);
     }
     
     @Override
-    public final void putIfAbsentInQuadrant(T task, Quadrant quadrant) {
-        if ((task == null) || (quadrant == null)) {
-            throw new NullPointerException("Null argument(s) for this function.");
-        }
+    public final void addTaskIfAbsentInQuadrant(T task, Quadrant quadrant) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
         
         if (!this.containsTask(task, quadrant)) {
-            Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
-            if (tasksInThisQuadrant == null) {
-                throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
+            Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+            if (tasksInQuadrant == null) {
+                throw new IllegalStateException("Quadrant " + quadrant + " has not been initialized with a proper collection.");
             }
-            tasksInThisQuadrant.add(task);
+            tasksInQuadrant.add(task);
         }
     }
     
     @Override
-    public final void putIfAbsentInQuadrant(T task, boolean urgent, boolean important) {
-        if (task == null) {
-            throw new NullPointerException("Task is null.");
-        }
-        
-        this.putIfAbsentInQuadrant(task, Quadrant.getQuadrant(urgent, important));
+    public final void addTaskIfAbsentInQuadrant(T task, boolean urgent, boolean important) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        this.addTaskIfAbsentInQuadrant(task, quadrant);
     }
     
     @Override
-    public final void putIfAbsentInMatrix(T task, Quadrant quadrant) {
-        if ((task == null) || (quadrant == null)) {
-            throw new NullPointerException("Null argument(s) for this function.");
-        }
+    public final void addTaskIfAbsentInMatrix(T task, Quadrant quadrant) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
         
         if (!this.containsTask(task)) {
-            Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
-            if (tasksInThisQuadrant == null) {
-                throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
+            Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+            if (tasksInQuadrant == null) {
+                throw new IllegalStateException("Quadrant " + quadrant + " has not been initialized with a proper collection.");
             }
-            tasksInThisQuadrant.add(task);
+            tasksInQuadrant.add(task);
         }
     }
     
     @Override
-    public final void putIfAbsentInMatrix(T task, boolean urgent, boolean important) {
-        if (task == null) {
-            throw new NullPointerException("Task is null.");
-        }
+    public final void addTaskIfAbsentInMatrix(T task, boolean urgent, boolean important) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        this.addTaskIfAbsentInMatrix(task, quadrant);
+    }
+    
+    @Override
+    public final boolean addAllTasks(Quadrant quadrant, Collection<? extends T> tasks) {
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        Objects.requireNonNull(tasks, "Tasks collection cannot be null.");
         
-        this.putIfAbsentInMatrix(task, Quadrant.getQuadrant(urgent, important));
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+        if (tasksInQuadrant == null) {
+            throw new IllegalStateException("Quadrant " + quadrant + " has not been initialized with a proper collection.");
+        }
+        return tasksInQuadrant.addAll(tasks);
     }
     
     @Override
-    public final boolean putAll(Quadrant quadrant, Collection<? extends T> tasks) {
-        if ((tasks == null) || (quadrant == null)) {
-            throw new NullPointerException("Null argument(s) for this function.");
-        }
-        
-        Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
-        if (tasksInThisQuadrant == null) {
-            throw new NullPointerException("This quadrant hasn't been initialized with a proper collection of tasks.");
-        }
-        return tasksInThisQuadrant.addAll(tasks);
-    }
-    
-    @Override
-    public final boolean putAll(Map<Quadrant, Collection<? extends T>> eisenhowerMap) {
-        if (eisenhowerMap == null) {
-            throw new NullPointerException("Null pointer for Eisenhower quadrants' map.");
-        }
+    public final boolean addAllTasks(Map<Quadrant, Collection<? extends T>> eisenhowerMap) {
+        Objects.requireNonNull(eisenhowerMap, "Eisenhower quadrants' map cannot be null.");
         if (eisenhowerMap.isEmpty()) {
             return false;
         }
         
-        boolean modified = true;
-        for (Quadrant quadrant : quadrantsMapping.keySet()) {
-            Collection<T> tasksInThisQuadrant = this.getTasks(quadrant);
-            Collection<? extends T> tasksInOtherQuadrant = eisenhowerMap.get(quadrant);
-            if (tasksInOtherQuadrant == null) {
-                break;
-            }
-            if (!tasksInThisQuadrant.addAll(tasksInOtherQuadrant)) {
-                modified = false;
+        boolean modified = false;
+        for (Quadrant quadrant : quadrantTaskMap.keySet()) {
+            Collection<? extends T> tasksToAdd = eisenhowerMap.get(quadrant);
+            Objects.requireNonNull(tasksToAdd, "Quadrant " + quadrant + " is missing in the provided map.");
+            Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+            if (tasksInQuadrant.addAll(tasksToAdd)) {
+                modified = true;
             }
         }
         return modified;
@@ -199,50 +181,49 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final Collection<T> getTasks(Quadrant quadrant) {
-        return quadrantsMapping.get(quadrant);
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        return quadrantTaskMap.get(quadrant);
     }
     
     @Override
     public final Collection<T> getTasks(boolean urgent, boolean important) {
-        return this.getTasks(Quadrant.getQuadrant(urgent, important));
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.getTasks(quadrant);
     }
     
     @Override
     public final List<T> getTasksSorted(Quadrant quadrant) {
-        if (quadrant == null) {
-            throw new NullPointerException("Quadrant is null.");
-        }
-            
-        List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
-        Collections.sort(tasksList);
-        return tasksList;
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        List<T> sortedTasks = new ArrayList<>(this.getTasks(quadrant));
+        Collections.sort(sortedTasks);
+        return sortedTasks;
     }
     
     @Override
     public final List<T> getTasksSorted(boolean urgent, boolean important) {
-        return this.getTasksSorted(Quadrant.getQuadrant(urgent, important));
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.getTasksSorted(quadrant);
     }
 
     @Override
     public final List<T> getTasksSorted(Quadrant quadrant, Comparator<T> comparator) {
-        if (quadrant == null) {
-            throw new NullPointerException("Quadrant is null.");
-        }
-        
-        List<T> tasksList = new ArrayList<>(this.getTasks(quadrant));
-        Collections.sort(tasksList, comparator);
-        return tasksList;
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        Objects.requireNonNull(comparator, "Comparator cannot be null.");
+        List<T> sortedTasks = new ArrayList<>(this.getTasks(quadrant));
+        sortedTasks.sort(comparator);
+        return sortedTasks;
     }
     
     @Override
     public final List<T> getTasksSorted(boolean urgent, boolean important, Comparator<T> comparator) {
-        return this.getTasksSorted(Quadrant.getQuadrant(urgent, important), comparator);
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.getTasksSorted(quadrant, comparator);
     }
     
     @Override
     public final Set<T> getAllTasks() {
         Set<T> allTasks = new HashSet<>();
-        for (Collection<T> tasksInQuadrant : quadrantsMapping.values()) {
+        for (Collection<T> tasksInQuadrant : quadrantTaskMap.values()) {
             allTasks.addAll(tasksInQuadrant);
         }
         return allTasks;
@@ -259,6 +240,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
 
     @Override
     public final List<T> getAllTasksSorted(Comparator<T> comparator) {
+        Objects.requireNonNull(comparator, "Comparator cannot be null.");
         List<T> allTasksList = new ArrayList<>();
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             allTasksList.addAll(this.getTasksSorted(quadrant, comparator));
@@ -268,24 +250,25 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final List<T> getAllTasksSorted(Map<Quadrant, Comparator<T>> quadrantComparators) {
-        if (quadrantComparators.size() != 4) {
+        Objects.requireNonNull(quadrantComparators, "Quadrant comparators map cannot be null.");
+        if (quadrantComparators.size() != Quadrant.values().length) {
             throw new UnsupportedOperationException("Comparator(s) missing for 1 or more Eisenhower quadrants.");
         }
         
         List<T> allTasksList = new ArrayList<>();
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            Comparator<T> specificComparator = quadrantComparators.get(quadrant);
-            allTasksList.addAll(this.getTasksSorted(quadrant, specificComparator));
+            Comparator<T> comparator = quadrantComparators.get(quadrant);
+            if (comparator == null) {
+                throw new UnsupportedOperationException("Comparator missing for quadrant: " + quadrant);
+            }
+            allTasksList.addAll(this.getTasksSorted(quadrant, comparator));
         }
         return allTasksList;
     }
     
-    
     @Override
     public final Quadrant getQuadrant(T task) {
-        if (task == null) {
-            throw new NullPointerException("Task is null.");
-        }
+        Objects.requireNonNull(task, "Task cannot be null.");
         
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
@@ -297,49 +280,49 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
 
     @Override
     public final Set<Quadrant> getQuadrants(T task) {
-        if (task == null) {
-            throw new NullPointerException("Task is null.");
-        }
+        Objects.requireNonNull(task, "Task cannot be null.");
         
-        Set<Quadrant> quadrantsHavingTask = new HashSet<>();
+        Set<Quadrant> quadrantsWithTask = new HashSet<>();
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
             if (this.getTasks(quadrant).contains(task)) {
-                quadrantsHavingTask.add(quadrant);
+                quadrantsWithTask.add(quadrant);
             }
         }
-        return quadrantsHavingTask;
+        return quadrantsWithTask;
     }
     
     // -------------------------------------------------------------------------
     
     @Override
     public final boolean containsTask(T task) {
-        return quadrantsMapping.values().stream()
-                    .anyMatch(tasks -> tasks.contains(task));
+        Objects.requireNonNull(task, "Task cannot be null.");
+        return quadrantTaskMap.values().stream()
+                .anyMatch(tasks -> tasks.contains(task));
     }
 
     @Override
     public final boolean containsTask(T task, Quadrant quadrant) {
-        if (quadrant == null) {
-            throw new NullPointerException("Quadrant is null.");
-        }
-        
-        return this.getTasks(quadrant).contains(task);
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+        return (tasksInQuadrant != null) && (tasksInQuadrant.contains(task));
     }
     
     @Override
     public final boolean containsTask(T task, boolean urgent, boolean important) {
-        return this.containsTask(task, Quadrant.getQuadrant(urgent, important));
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.containsTask(task, quadrant);
     }
     
     // -------------------------------------------------------------------------
     
     @Override
     public final boolean removeTask(T task) {
-        boolean removed = true;
+        Objects.requireNonNull(task, "Task cannot be null.");
+        boolean removed = false;
         for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            if (!this.removeTask(task, quadrant)) {
-                removed = false;
+            if (this.removeTask(task, quadrant)) {
+                removed = true;
             }
         }
         return removed;
@@ -347,17 +330,15 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final boolean removeTask(T task, boolean urgent, boolean important) {
-        return this.removeTask(task, Quadrant.getQuadrant(urgent, important));
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.removeTask(task, quadrant);
     }
     
     // -------------------------------------------------------------------------
     
     @Override
     public final void clearQuadrant(Quadrant quadrant) {
-        if (quadrant == null) {
-            throw new NullPointerException("Quadrant is null.");
-        }
-        
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
         Collection<T> tasksInQuadrant = this.getTasks(quadrant);
         if (tasksInQuadrant != null) {
             tasksInQuadrant.clear();
@@ -366,12 +347,12 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     @Override
     public final void clearQuadrant(boolean urgent, boolean important) {
-        this.clearQuadrant(Quadrant.getQuadrant(urgent, important));
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        this.clearQuadrant(quadrant);
     }
     
     @Override
-    public final void clearAllMatrix() {
+    public final void clearAllTasks() {
         this.initializeMatrix();
     }
-    
 }
