@@ -111,12 +111,16 @@ boolean isImportant = setMatrix.isImportant("Prepare presentation");
   - `static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering)`: Returns all 4 `Quadrant` of an Eisenhower Matrix, sorted according different rules: `(Q1, Q2, Q3, Q4)` or `(Q1, Q3, Q2, Q4)`.
 
 ### `Task`
-- **Description**: Provides a tasks system, with customizable properties and optional subtasks, to use within the `EisenhowerMatrix`. However, you can represent your tasks using whatever class you like (for instance, a `String`, or create your custom one).
+- **Description**: Provides a tasks system, to use within the `EisenhowerMatrix`. Most important features are customizable properties and optional subtasks. However, you can represent your tasks using whatever class you like (for instance, a `String`, or create your custom one).
 - **Most useful methods:**:
-  - `static Quadrant getQuadrant(boolean urgent, boolean important)`: Returns the appropriate quadrant based on the urgency and importance of the task.
-  - `static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering)`: Returns all 4 `Quadrant` of an Eisenhower Matrix, sorted according different rules: `(Q1, Q2, Q3, Q4)` or `(Q1, Q3, Q2, Q4)`.
-
-
+  - `Set<String> getRequiredProperties()`: Returns the set of properties that are required for this task. Concrete subclasses can define their own required properties by overriding this method.
+  - `Object putProperty(String key, Object value)`: Adds or updates a property of the task, which is defined by a key and a value.
+  - `Object getProperty(String key)`: Retrieves the property using a key.
+  - `Object removeProperty(String key)`: Removes a property from this task.
+  - `boolean addSubtask(Task subtask)`: Adds a subtask to this task.
+  - `boolean removeSubtask(Task subtask)`: Removes a subtask from this task.
+  - `Collection<Task> getSubtasks()`: Returns the subtasks of this task. If the task is atomic, the list will be empty and unmodifiable.
+  - `Task turnIntoAtomic()`: Returns a copy of this task, but atomic, with the same properties but not allowing subtasks.
 
 ## Contributing
 
