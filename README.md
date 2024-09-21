@@ -87,8 +87,8 @@ boolean isImportant = setMatrix.isImportant("Prepare presentation");
   - `boolean removeTask(T task, Quadrant quadrant)`: Removes the first occurrence found for this task, from a quadrant.
   - `boolean removeTaskOccurrences(T task, Quadrant quadrant)`: Removes all copies of this task, from a quadrant.
   - `boolean removeTaskOccurrences(T task)`: Removes all copies of this task, from all 4 quadrants.
-  - `void clearQuadrant(Quadrant quadrant)`: Deletes all tasks from a quadrant.
-  - `void clearAllQuadrants()`: Deletes all tasks from the entire matrix.
+  - `EisenhowerMatrix<T> clearQuadrant(Quadrant quadrant)`: Creates a copy of this matrix, and deletes all tasks from a quadrant. It is API-fluent and allows to revert modifications.
+  - `EisenhowerMatrix<T> clearAllQuadrants()`: Creates a copy of this matrix, and deletes all tasks from the entire matrix. It is API-fluent and allows to revert modifications.
 
 ### `EisenhowerMatrixSet`
 
