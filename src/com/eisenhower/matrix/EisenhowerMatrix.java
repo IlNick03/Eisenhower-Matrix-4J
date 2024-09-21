@@ -406,29 +406,35 @@ public interface EisenhowerMatrix<T extends Comparable<T>> {
      * Clears all tasks from the specified quadrant.
      *
      * @param quadrant the quadrant to be cleared.
+     * @return a copy of this Eisenhower Matrix with the specified quadrant cleared.
      * @throws NullPointerException if {@code quadrant} is {@code null}.
      */
-    void clearQuadrant(Quadrant quadrant);
+    EisenhowerMatrix<T> clearQuadrant(Quadrant quadrant);
 
     /**
      * Clears all tasks from the specified quadrant determined by urgency and importance.
      *
      * @param urgent     indicates if the tasks are urgent.
      * @param important  indicates if the tasks are important.
+     * @return a copy of this Eisenhower Matrix with the specified quadrant cleared.
      * @see Quadrant#getQuadrant(boolean, boolean)
      */
-    void clearQuadrant(boolean urgent, boolean important);
+    EisenhowerMatrix<T> clearQuadrant(boolean urgent, boolean important);
     
     /**
      * Clears all tasks from the {@link Quadrant#ELIMINATE_IT} quadrant,
      * which are only a waste of time, energy and effort: not important, nor urgent.
+     * 
+     * @return a copy of this Eisenhower Matrix with the specified quadrant cleared.
+     * @see #clearQuadrant(com.eisenhower.util.Quadrant) 
+     * @see Quadrant#getQuadrant(boolean, boolean)
      */
-    default void clearUseless() {
-        this.clearQuadrant(ELIMINATE_IT);
+    default EisenhowerMatrix<T> clearUseless() {
+        return this.clearQuadrant(ELIMINATE_IT);
     }
 
     /**
      * Clears all tasks from the entire matrix, effectively resetting it.
      */
-    void clearAllTasks();
+    EisenhowerMatrix<T> clearAllTasks();
 }

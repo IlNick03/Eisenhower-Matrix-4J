@@ -163,7 +163,7 @@ public class Task implements Comparable<Task>, Cloneable {
     }
 
     /**
-     * Retrieves the value of a property.
+     * Retrieves the property using a key.
      * 
      * @param key The property key.
      * @return The value associated with the key, or {@code null} if no such key exists.
@@ -184,7 +184,7 @@ public class Task implements Comparable<Task>, Cloneable {
     }
 
     /**
-     * Removes a property from the task.
+     * Removes a property from this task.
      * <p>
      * Required properties cannot be removed, and attempting to do so will throw 
      * an {@link UnsupportedOperationException}.
@@ -220,7 +220,7 @@ public class Task implements Comparable<Task>, Cloneable {
     /**
      * Returns the subtasks of this task.
      * <p>
-     * If the task is atomic, the list will be empty.
+     * If the task is atomic, the list will be empty and unmodifiable.
      * </p>
      * 
      * @return A collection of subtasks, or an empty list if the task is atomic.

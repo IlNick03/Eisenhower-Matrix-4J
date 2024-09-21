@@ -16,7 +16,7 @@ import java.util.*;
  *
  * @param <T> the type of task stored in the matrix.
  */
-public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implements EisenhowerMatrix<T> {
+public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implements EisenhowerMatrix<T>, Cloneable {
     
     private final Map<Quadrant, Collection<T>> quadrantTaskMap = new HashMap<>();
     
@@ -72,7 +72,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         }
         return matrix;
     }
-
+    
     @Override
     public final boolean equals(Object obj) {
         if (this == obj) {
@@ -375,22 +375,43 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     // -------------------------------------------------------------------------
     
     @Override
-    public final void clearQuadrant(Quadrant quadrant) {
+    public final EisenhowerMatrix<T> clearQuadrant(Quadrant quadrant) {
         Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
-        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+        
+        EisenhowerMatrix modified = (EisenhowerMatrix) this.clone();
+        Collection<T> tasksInQuadrant = modified.getTasks(quadrant);
         if (tasksInQuadrant != null) {
             tasksInQuadrant.clear();
         }
+        return modified;
     }
     
     @Override
-    public final void clearQuadrant(boolean urgent, boolean important) {
+    public final EisenhowerMatrix<T> clearQuadrant(boolean urgent, boolean important) {
         Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
-        this.clearQuadrant(quadrant);
+        return this.clearQuadrant(quadrant);
     }
     
     @Override
-    public final void clearAllTasks() {
-        this.initializeMatrix();
+    public EisenhowerMatrix<T> clearAllTasks() {
+        AbstractEisenhowerMatrix modified = (AbstractEisenhowerMatrix) this.clone();
+        modified.initializeMatrix();
+        return modified;
     }
+    
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected Object clone() {
+        try {
+            AbstractEisenhowerMatrix matrixClone = (AbstractEisenhowerMatrix) super.clone();
+            matrixClone.quadrantTaskMap.clear();
+            matrixClone.quadrantTaskMap.putAll(this.quadrantTaskMap);
+            return matrixClone;
+        } catch (ClassCastException | CloneNotSupportedException ex) {
+            return null;
+        }
+    }
+    
+    
 }
