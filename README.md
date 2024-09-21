@@ -10,6 +10,13 @@
 - **Duplicates Handling**: Choose between allowing duplicates (List implementation) or disallowing duplicates (Set implementation).
 
 
+## Beta-testing note
+Please note this library is still in pre-release. Although much care has been taken in writing the code, it hasn't been tested yet and implementations may contain some little bugs.
+
+Please wait for a stable release, or use it at your own risk.
+
+
+
 ## Getting Started
 
 ### Prerequisites
@@ -68,6 +75,7 @@ boolean isImportant = setMatrix.isImportant("Prepare presentation");
 ```
 
 
+
 ## Essential API documentation
 
 ### `EisenhowerMatrix` (interface)
@@ -96,9 +104,15 @@ boolean isImportant = setMatrix.isImportant("Prepare presentation");
   - `setTask(T task, Quadrant quadrant, int index)`: Replaces the task at the specified index in the specified quadrant.
   - `sublist(Quadrant quadrant, int fromIndex, int toIndex)`: Returns a sublist of tasks from the specified quadrant, between the specified indices.
 
-### `Quadrant`
+### `Quadrant` (enum)
 - **Description**: Enum representing the four quadrants of the Eisenhower Matrix.
-- **Most useful static methods:**:
+- **Useful static methods:**:
+  - `static Quadrant getQuadrant(boolean urgent, boolean important)`: Returns the appropriate quadrant based on the urgency and importance of the task.
+  - `static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering)`: Returns all 4 `Quadrant` of an Eisenhower Matrix, sorted according different rules: `(Q1, Q2, Q3, Q4)` or `(Q1, Q3, Q2, Q4)`.
+
+### `Task`
+- **Description**: Provides a tasks system, with customizable properties and optional subtasks, to use within the `EisenhowerMatrix`. However, you can represent your tasks using whatever class you like (for instance, a `String`, or create your custom one).
+- **Most useful methods:**:
   - `static Quadrant getQuadrant(boolean urgent, boolean important)`: Returns the appropriate quadrant based on the urgency and importance of the task.
   - `static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering)`: Returns all 4 `Quadrant` of an Eisenhower Matrix, sorted according different rules: `(Q1, Q2, Q3, Q4)` or `(Q1, Q3, Q2, Q4)`.
 
@@ -132,6 +146,7 @@ Copyright © 2024, Nicolas Scalese (alias IlNick03 on Github)
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
 
 
 ## Acknowledgments
