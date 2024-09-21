@@ -18,19 +18,26 @@ import java.util.*;
  * customized by adding properties dynamically.
  * </p>
  */
-public class Task implements Comparable<Task> {
+public class Task implements Comparable<Task>, Cloneable {
 
     // Map containing the properties of the task
     private final Map<String, Object> properties = new HashMap<>();
+    
     // Collection of subtasks (empty if the task is atomic)
     private final Collection<Task> subtasks = new ArrayList<>();
+    
     private boolean atomicTask;
     
+    
+    // ---------------------------------------------------------------------- //
+    //  Constructors                                                          //
+    // ---------------------------------------------------------------------- //
+    
     /**
-     * Default constructor, used for creating a task without predefined properties.
+     * Default constructor, used for creating a task without any properties.
      * <p>
      * Subclasses can call this constructor and then use the {@code putProperty} 
-     * method to set additional properties.
+     * method to set required and additional properties.
      * </p>
      */
     protected Task() {
@@ -96,6 +103,10 @@ public class Task implements Comparable<Task> {
         properties.put(TIME, time);
         this.atomicTask = atomicTask;
     }
+    
+    // ---------------------------------------------------------------------- //
+    //  Instance Methods                                                      //
+    // ---------------------------------------------------------------------- //
 
     /**
      * Validates that all required properties are set. If any required property is missing, 
@@ -194,12 +205,17 @@ public class Task implements Comparable<Task> {
      * Replaces the value of a property.
      * 
      * @param key The property key.
-     * @param value The new value.
+     * @param newValue The new newValue.
+     * @throws NullPointerException if the given {@code key} or {@code newValue} is null.
      * @return The previous value associated with the key, or {@code null} if none existed.
      */
-    public final Object replaceProperty(String key, Object value) {
-        return properties.replace(key, value);
+    public final Object replaceProperty(String key, Object newValue) {
+        Objects.requireNonNull(key, "Key cannot be null.");
+        Objects.requireNonNull(newValue, "New value for an existing entry cannot be null.");
+        return properties.replace(key, newValue);
     }
+    
+    // -------------------------------------------------------------------------
 
     /**
      * Returns the subtasks of this task.
@@ -276,11 +292,58 @@ public class Task implements Comparable<Task> {
             this.getSubtasks().clear();
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Override methods for equality and comparison
+    
     // -------------------------------------------------------------------------
     
+    /**
+     * Returns a copy of this task, but atomic.
+     * More specifically, it creates another task with the same properties,
+     * clears all subtasks, and sets the task atomic (not allowing subtasks).
+     * If this is already atomic, the method returns this.
+     * 
+     * @return a copy of this task, but atomic (i.e, not allowing subtasks)
+     * @see #allowSubtasks()
+     */
+    public Task turnIntoAtomic() {
+        if (atomicTask) {
+            return this;
+        }
+        
+        Task clonedTask = new Task(true);
+        clonedTask.properties.putAll(this.properties);
+        clonedTask.subtasks.clear();
+        return clonedTask;
+    }
+    
+    /**
+     * Returns a copy of this atomic task, but allowing subtasks.
+     * More specifically, it creates another task with the same properties,
+     * and sets the task not atomic.
+     * If this already allows subtasks, the method returns this.
+     * 
+     * @return a copy of this task, but atomic (i.e, not allowing subtasks)
+     * @see #turnIntoAtomic()
+     */
+    public Task allowSubtasks() {
+        if (!atomicTask) {
+            return this;
+        }
+        
+        Task clonedTask = new Task(false);
+        clonedTask.properties.putAll(this.properties);
+        clonedTask.subtasks.clear();
+        return clonedTask;
+    }
+
+    // ---- Override the following methods for equality and comparison ------ //
+    
+    /**
+     * This equal {@code obj} if the other object is a task and both contain
+     * the same property and subtasks.
+     * 
+     * @param obj
+     * @return 
+     */
     @Override
     public final boolean equals(Object obj) {
         if (this == obj) {
@@ -300,7 +363,7 @@ public class Task implements Comparable<Task> {
     }
 
     /**
-     * Compares this task with another task based on their date and time.
+     * Compares this task with another task, based on their date and time.
      * 
      * @param other The other task to compare to.
      * @return A negative integer, zero, or a positive integer as this task is earlier, 
@@ -316,5 +379,19 @@ public class Task implements Comparable<Task> {
 
         return LocalDateTime.of(thisDate, thisTime)
                 .compareTo(LocalDateTime.of(otherDate, otherTime));
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            Task clonedTask = (Task) super.clone();
+            clonedTask.properties.clear();
+            clonedTask.properties.putAll(this.properties);
+            clonedTask.subtasks.clear();
+            clonedTask.subtasks.addAll(this.subtasks);
+            return clonedTask;
+        } catch (ClassCastException | CloneNotSupportedException ex) {
+            return null;
+        }
     }
 }

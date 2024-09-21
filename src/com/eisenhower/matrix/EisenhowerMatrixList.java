@@ -6,7 +6,8 @@ import java.util.*;
 /**
  * An Eisenhower matrix where each quadrant contains a {@link List} of tasks.
  * <p>
- * This implementation allows duplicated tasks both across quadrants and within a single quadrant.
+ * This into account the order in which tasks are entered,
+ * and allows duplicated tasks both across quadrants and within a single quadrant.
  *
  * @param <T> Any class representing a task to be added to the Eisenhower matrix.
  */
@@ -18,19 +19,19 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
      */
     @Override
     protected void initializeMatrix() {
-        super.put(Quadrant.DO_IT_NOW, new ArrayList<>());
-        super.put(Quadrant.DELEGATE_OR_OPTIMIZE_IT, new ArrayList<>());
-        super.put(Quadrant.SCHEDULE_IT, new ArrayList<>());
-        super.put(Quadrant.ELIMINATE_IT, new ArrayList<>());
+        super.put(Quadrant.DO_IT_NOW, new LinkedList<>());
+        super.put(Quadrant.DELEGATE_OR_OPTIMIZE_IT, new LinkedList<>());
+        super.put(Quadrant.SCHEDULE_IT, new LinkedList<>());
+        super.put(Quadrant.ELIMINATE_IT, new LinkedList<>());
     }
 
     /**
-     * Returns the type of collection used in this implementation, which is {@link List}.
+     * Retrieves the type of collection used to store tasks within the 4 quadrants, which is {@link List}.
      *
      * @return {@link List} class object.
      */
     @Override
-    public final Class<?> getTypeOfCollections() {
+    public final Class<?> getImplementingCollectionType() {
         return List.class;
     }
 
@@ -94,9 +95,7 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
 
     
     public final List<T> sublist(Quadrant quadrant, int fromIndex, int toIndex) {
-        if (quadrant == null) {
-            throw new NullPointerException("Quadrant is null.");
-        }
+        Objects.requireNonNull(quadrant, "Quadrant is null.");
         
         List<T> tasksInQuadrant = (List<T>) this.getTasks(quadrant);
         try {
@@ -147,6 +146,7 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
      * @param index     The index of the task to replace.
      * @return The task previously at the specified position.
      * @throws NullPointerException if the task is {@code null}.
+     * @see Quadrant#getQuadrant(boolean, boolean)
      */
     public final T setTask(T task, boolean urgent, boolean important, int index) {
         try {
@@ -156,52 +156,4 @@ public class EisenhowerMatrixList<T extends Comparable<T>> extends AbstractEisen
         }
     }
 
-    // -------------------------------------------------------------------------
-
-    /**
-     * Removes all instances of the specified task from the given quadrant.
-     * This implementation allows duplicate tasks, so it removes all occurrences.
-     *
-     * @param task     The task to be removed.
-     * @param quadrant The quadrant from which the task will be removed.
-     * @return {@code true} if at least one instance of the task was removed, otherwise {@code false}.
-     * @throws NullPointerException if the task or quadrant is {@code null}.
-     * @see Object#equals(java.lang.Object) 
-     */
-    @Override
-    public final boolean removeTask(T task, Quadrant quadrant) {
-        Objects.requireNonNull(task, "Task cannot be null.");
-        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
-
-        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
-        int count = this.countEqualInQuadrant(task, quadrant);
-        if (count == 0) {
-            return false;
-        }
-        boolean removed = true;
-        for (int i = 0; i < count; i++) {
-            if (!tasksInQuadrant.remove(task)) {
-                removed = false;
-            }
-        }
-        return removed;
-    }
-
-    /**
-     * Counts the number of occurrences of the given task in the specified quadrant.
-     *
-     * @param task     The task to count.
-     * @param quadrant The quadrant to search in.
-     * @return The number of occurrences of the task in the quadrant.
-     */
-    private int countEqualInQuadrant(T task, Quadrant quadrant) {
-        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
-        int count = 0;
-        for (T t : tasksInQuadrant) {
-            if (Objects.equals(task, t)) {
-                count++;
-            }
-        }
-        return count;
-    }
 }

@@ -6,7 +6,10 @@ import java.util.*;
 /**
  * An Eisenhower matrix where each quadrant contains a {@link Set} of tasks.
  * <p>
- * This implementation does not allow duplicate tasks in the matrix and is preferred over {@link EisenhowerMatrixList}.
+ * This implementation does not allow duplicated tasks in the matrix, and
+ * it doesn't take into account the order in which tasks are entered.
+ * Representing the most natural and worthwhile solution for storing and use, 
+ * it's preferred over {@link EisenhowerMatrixList} for most of the cases.
  *
  * @param <T> Any class representing a task to be added to the Eisenhower matrix.
  */
@@ -25,12 +28,13 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
     }
 
     /**
-     * Returns the type of collections used in this matrix, which is {@link Set}.
+     * Retrieves the type of collection used to store tasks within the 4 quadrants, 
+     * which is {@link Set}.
      * 
      * @return {@link Set} class type.
      */
     @Override
-    public final Class<?> getTypeOfCollections() {
+    public final Class<?> getImplementingCollectionType() {
         return Set.class;
     }
     
@@ -67,16 +71,16 @@ public class EisenhowerMatrixSet<T extends Comparable<T>> extends AbstractEisenh
      * @throws NullPointerException if task or quadrant is {@code null}.
      */
     @Override
-    public final boolean removeTask(T task, Quadrant quadrant) {
-        Objects.requireNonNull(task, "Task cannot be null.");
-        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
-        
-        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
-        return tasksInQuadrant.remove(task);
+    public final boolean removeTaskOccurrences(T task, Quadrant quadrant) {
+        try {
+            return this.removeTask(task, quadrant);
+        } catch (NullPointerException ex) {
+            throw ex;
+        }
     }
-    
-    // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+    
     /**
      * Determines if the specified task is in an urgent quadrant.
      * 

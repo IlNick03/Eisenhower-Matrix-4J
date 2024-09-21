@@ -1,6 +1,6 @@
 package com.eisenhower.util;
 
-import java.util.*;
+import static com.eisenhower.util.EQuadrantsSorting.*;
 
 /**
  * This enumeration represents the 4 quadrants of the Eisenhower Matrix, a productivity tool used to 
@@ -50,38 +50,36 @@ public enum Quadrant implements Comparable<Quadrant> {
     // -------------------------------------------------------------------------
     
     /**
-     * Returns a list of quadrants ordered by a specific criterion:
-     * this method reflects how tasks are typically prioritised in real-world scenarios, 
-     * giving higher precedence to urgent tasks then important ones.
-     * <p>
-     * The order is as follows:
-     * <ol>
-     *     <li>{@link DO_IT_NOW} (Quadrant 1)</li>
-     *     <li>{@link DELEGATE_OR_OPTIMIZE_IT} (Quadrant 3)</li>
-     *     <li>{@link SCHEDULE_IT} (Quadrant 2)</li>
-     *     <li>{@link ELIMINATE_IT} (Quadrant 4)</li>
-     * </ol>
+     * Returns all 4 quadrants of an Eisenhower Matrix, sorted by a specific criterion.
+     * It can be useful to convert a matrix-based tasks system into a unified linear sorting.
+     * More specifically, you may:
+     * <ul>
+     *     <li>Prefer to give priority and resources to the <b>"urgent"</b> ones 
+     *     <b>at the expense of "important"</b> ones -> {@code (Q1, Q3, Q2, Q4)}.<p>
+     *     Allows you to manage better and get much things done in the short term if you 
+     *     are very busy and overwhelmed. Needed if you really can't delegate commitments 
+     *     to other people, nor delete less important ones.</li>
+     *     <li>Prefer to give priority and resources to the <b>"important"</b> ones and 
+     *     <b>worry less about "urgent"</b> ones -> {@code (Q1, Q2, Q3, Q4)}.<p>
+     *     Allows you to invest time and energies for your long term goals, 
+     *     while meeting deadlines over the short term. </li>
+     * </ul>
      * 
-     * @return a list of quadrants ordered by priority.
+     * @param ordering the ordering criterion to be used
+     * @return a ordering of the 4 Eisenhower Matrix' quadrants, based on the given criterion.
+     * @see EQuadrantsSorting#IMPORTANCE_OVER_URGENCY
+     * @see EQuadrantsSorting#URGENCY_OVER_IMPORTANCE
      */
-    public static List<Quadrant> linearPrioritySorting() {
-        return Arrays.asList(DO_IT_NOW, DELEGATE_OR_OPTIMIZE_IT, SCHEDULE_IT, ELIMINATE_IT);
-    }
-    
-    /**
-     * Returns a list of quadrants ordered by their classical numerical representation (1-4),
-     * which is commonly used in some interpretations of the Eisenhower Matrix:
-     * <ol>
-     *     <li>{@link DO_IT_NOW} (Quadrant 1)</li>
-     *     <li>{@link SCHEDULE_IT} (Quadrant 2)</li>
-     *     <li>{@link DELEGATE_OR_OPTIMIZE_IT} (Quadrant 3)</li>
-     *     <li>{@link ELIMINATE_IT} (Quadrant 4)</li>
-     * </ol>
-     * 
-     * @return a list of quadrants ordered by their classical quadrant number.
-     */
-    public static List<Quadrant> classicalSortingByNumber() {
-        return Arrays.asList(DO_IT_NOW, SCHEDULE_IT, DELEGATE_OR_OPTIMIZE_IT, ELIMINATE_IT);
+    public static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering) {
+        switch (ordering) {
+            case IMPORTANCE_OVER_URGENCY -> {
+                return new Quadrant[] {DO_IT_NOW, SCHEDULE_IT, DELEGATE_OR_OPTIMIZE_IT, ELIMINATE_IT};
+            }
+            case URGENCY_OVER_IMPORTANCE -> {
+                return new Quadrant[] {DO_IT_NOW, DELEGATE_OR_OPTIMIZE_IT, SCHEDULE_IT, ELIMINATE_IT};
+            }
+        }
+        return null;
     }
     
     /**

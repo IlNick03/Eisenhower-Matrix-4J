@@ -1,5 +1,7 @@
 package com.eisenhower.matrix;
 
+import com.eisenhower.util.EQuadrantsSorting;
+import static com.eisenhower.util.EQuadrantsSorting.*;
 import com.eisenhower.util.Quadrant;
 import java.util.*;
 
@@ -63,7 +65,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     public final Collection<T>[][] toMatrix() {
         Collection<T>[][] matrix = new Collection[2][2];
         
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+        for (Quadrant quadrant : Quadrant.values()) {
             int row = quadrant.isUrgent() ? 0 : 1;
             int col = quadrant.isImportant() ? 0 : 1;
             matrix[row][col] = this.getTasks(quadrant);
@@ -230,34 +232,34 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     }
     
     @Override
-    public final List<T> getAllTasksSorted() {
+    public final List<T> getAllTasksSorted(EQuadrantsSorting quadrantsOrdering) {
         List<T> allTasksList = new ArrayList<>();
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+        for (Quadrant quadrant : Quadrant.quadrantsSorted(quadrantsOrdering)) {
             allTasksList.addAll(this.getTasksSorted(quadrant));
         }
         return allTasksList;
     }
 
     @Override
-    public final List<T> getAllTasksSorted(Comparator<T> comparator) {
-        Objects.requireNonNull(comparator, "Comparator cannot be null.");
+    public final List<T> getAllTasksSorted(Comparator<T> taskComparator, EQuadrantsSorting quadrantsOrdering) {
+        Objects.requireNonNull(taskComparator, "Comparator cannot be null.");
         List<T> allTasksList = new ArrayList<>();
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            allTasksList.addAll(this.getTasksSorted(quadrant, comparator));
+        for (Quadrant quadrant : Quadrant.quadrantsSorted(quadrantsOrdering)) {
+            allTasksList.addAll(this.getTasksSorted(quadrant, taskComparator));
         }
         return allTasksList;
     }
     
     @Override
-    public final List<T> getAllTasksSorted(Map<Quadrant, Comparator<T>> quadrantComparators) {
-        Objects.requireNonNull(quadrantComparators, "Quadrant comparators map cannot be null.");
-        if (quadrantComparators.size() != Quadrant.values().length) {
+    public final List<T> getAllTasksSorted(Map<Quadrant, Comparator<T>> comparators, EQuadrantsSorting quadrantsOrdering) {
+        Objects.requireNonNull(comparators, "Quadrant comparators map cannot be null.");
+        if (comparators.size() != Quadrant.values().length) {
             throw new UnsupportedOperationException("Comparator(s) missing for 1 or more Eisenhower quadrants.");
         }
         
         List<T> allTasksList = new ArrayList<>();
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            Comparator<T> comparator = quadrantComparators.get(quadrant);
+        for (Quadrant quadrant : Quadrant.quadrantsSorted(quadrantsOrdering)) {
+            Comparator<T> comparator = comparators.get(quadrant);
             if (comparator == null) {
                 throw new UnsupportedOperationException("Comparator missing for quadrant: " + quadrant);
             }
@@ -270,7 +272,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     public final Quadrant getQuadrant(T task) {
         Objects.requireNonNull(task, "Task cannot be null.");
         
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+        for (Quadrant quadrant : Quadrant.quadrantsSorted(IMPORTANCE_OVER_URGENCY)) {
             if (this.getTasks(quadrant).contains(task)) {
                 return quadrant;
             }
@@ -283,7 +285,7 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
         Objects.requireNonNull(task, "Task cannot be null.");
         
         Set<Quadrant> quadrantsWithTask = new HashSet<>();
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
+        for (Quadrant quadrant : Quadrant.quadrantsSorted(IMPORTANCE_OVER_URGENCY)) {
             if (this.getTasks(quadrant).contains(task)) {
                 quadrantsWithTask.add(quadrant);
             }
@@ -316,22 +318,58 @@ public abstract class AbstractEisenhowerMatrix<T extends Comparable<T>> implemen
     
     // -------------------------------------------------------------------------
     
+    
     @Override
-    public final boolean removeTask(T task) {
+    public final boolean removeTask(T task, Quadrant quadrant) {
         Objects.requireNonNull(task, "Task cannot be null.");
-        boolean removed = false;
-        for (Quadrant quadrant : Quadrant.linearPrioritySorting()) {
-            if (this.removeTask(task, quadrant)) {
-                removed = true;
-            }
-        }
-        return removed;
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+        
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+        return tasksInQuadrant.remove(task);
     }
     
     @Override
-    public final boolean removeTask(T task, boolean urgent, boolean important) {
+    public boolean removeTask(T task, boolean urgent, boolean important) {
         Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
         return this.removeTask(task, quadrant);
+    }
+    
+    /**
+     * Removes all instances of the specified task from the given quadrant.
+     * This implementation allows duplicate tasks, so it removes all occurrences.
+     *
+     * @param task     The task to be removed.
+     * @param quadrant The quadrant from which the task will be removed.
+     * @return {@code true} if at least one instance of the task was removed, otherwise {@code false}.
+     * @throws NullPointerException if the task or quadrant is {@code null}.
+     * @see Object#equals(java.lang.Object) 
+     */
+    @Override
+    public boolean removeTaskOccurrences(T task, Quadrant quadrant) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        Objects.requireNonNull(quadrant, "Quadrant cannot be null.");
+
+        Collection<T> tasksInQuadrant = this.getTasks(quadrant);
+        return tasksInQuadrant.removeIf(t -> t.equals(task));
+    }
+    
+    @Override
+    public final boolean removeTaskOccurrences(T task, boolean urgent, boolean important) {
+        Quadrant quadrant = Quadrant.getQuadrant(urgent, important);
+        return this.removeTaskOccurrences(task, quadrant);
+    }
+    
+    @Override
+    public final boolean removeTaskOccurrences(T task) {
+        Objects.requireNonNull(task, "Task cannot be null.");
+        boolean removed = true;
+        
+        for (Quadrant quadrant : Quadrant.values()) {
+            if (!this.removeTaskOccurrences(task, quadrant)) {
+                removed = false;
+            }
+        }
+        return removed;
     }
     
     // -------------------------------------------------------------------------
