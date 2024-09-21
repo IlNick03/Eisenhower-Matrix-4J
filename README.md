@@ -68,32 +68,40 @@ boolean isImportant = setMatrix.isImportant("Prepare presentation");
 ```
 
 
-## Summary of API Documentation
+## Essential API documentation
 
-### `EisenhowerMatrixList`
-
-- **Description**: Provides a list-based implementation of the matrix where each quadrant contains a `List` of tasks.
-- **Methods**:
-  - `putTask(T task, Quadrant quadrant)`: Adds a task to the specified quadrant. If the task or quadrant is `null`, a `NullPointerException` is thrown.
-  - `removeTask(T task, Quadrant quadrant)`: Removes all occurrences of the specified task from the specified quadrant. If the task or quadrant is `null`, a `NullPointerException` is thrown.
-  - `getTask(Quadrant quadrant, int index)`: Retrieves the task at the specified index from the specified quadrant. If the quadrant is `null` or the index is out of bounds, a `NullPointerException` or `IndexOutOfBoundsException` is thrown.
-  - `sublist(Quadrant quadrant, int fromIndex, int toIndex)`: Returns a sublist of tasks from the specified quadrant, between the specified indices. If the quadrant is `null` or indices are out of bounds, a `NullPointerException` or `IndexOutOfBoundsException` is thrown.
-  - `setTask(T task, Quadrant quadrant, int index)`: Replaces the task at the specified index in the specified quadrant. If the task or quadrant is `null`, a `NullPointerException` is thrown.
+### `EisenhowerMatrix` (interface)
+- **Description**: Provides an interface for objects representing Eisenhower Matrices, allowing storing custom object types. It has 2 implementations: a set-based and a list-based.
+- **Most useful methods**:
+  - `boolean addTask(T task, Quadrant quadrant)`: Adds a task to a quadrant.
+  - `Collection<T> getTasks(Quadrant quadrant)`: Retrieves all tasks from a quadrant.
+  - `List<T> getAllTasksSorted(EQuadrantsSorting quadrantsOrdering)`: It both sorts tasks in each quadrant, and combines the 4 lists into a single one according the specified `quadrantsOrdering`. Other methods variants allow sorting with a comparator, or using specific comparators for each quadrant.
+  - `boolean removeTask(T task, Quadrant quadrant)`: Removes the first occurrence found for this task, from a quadrant.
+  - `boolean removeTaskOccurrences(T task, Quadrant quadrant)`: Removes all copies of this task, from a quadrant.
+  - `boolean removeTaskOccurrences(T task)`: Removes all copies of this task, from all 4 quadrants.
+  - `void clearQuadrant(Quadrant quadrant)`: Deletes all tasks from a quadrant.
+  - `void clearAllQuadrants()`: Deletes all tasks from the entire matrix.
 
 ### `EisenhowerMatrixSet`
 
-- **Description**: Provides a set-based implementation of the matrix where each quadrant contains a `Set` of tasks.
-- **Methods**:
-  - `putTask(T task, Quadrant quadrant)`: Adds a task to the specified quadrant. Duplicate tasks are not allowed. If the task or quadrant is `null`, a `NullPointerException` is thrown.
-  - `removeTask(T task, Quadrant quadrant)`: Removes the specified task from the specified quadrant. If the task or quadrant is `null`, a `NullPointerException` is thrown.
-  - `isUrgent(T task)`: Checks if the specified task is urgent. Throws a `NullPointerException` if the task is `null`, and a `NoSuchElementException` if the task is not found in any quadrant.
-  - `isImportant(T task)`: Checks if the specified task is important. Throws a `NullPointerException` if the task is `null`, and a `NoSuchElementException` if the task is not found in any quadrant.
+- **Description**: Provides a set-based implementation of the matrix, where each quadrant contains a `Set` of tasks. It allows duplicated element in the matrix and quadrant itself, and store tasks in the order in which tasks are entered.
+- **Specific methods**:
+  - `boolean isTaskUrgent(T task)`: Checks if the specified task is urgent in the matrix.
+  - `boolean isTaskImportant(T task)`: Checks if the specified task is important in the matrix.
+ 
+### `EisenhowerMatrixList`
+- **Description**: Provides a list-based implementation of the matrix, where each quadrant contains a `List` of tasks. It doesn't allow duplicated element in the matrix. The most natural one, for most of the cases.
+- **Specific Methods**:
+  - `getTask(Quadrant quadrant, int index)`: Retrieves the task at the specified index from the specified quadrant.
+  - `setTask(T task, Quadrant quadrant, int index)`: Replaces the task at the specified index in the specified quadrant.
+  - `sublist(Quadrant quadrant, int fromIndex, int toIndex)`: Returns a sublist of tasks from the specified quadrant, between the specified indices.
 
 ### `Quadrant`
-
 - **Description**: Enum representing the four quadrants of the Eisenhower Matrix.
-- **Methods**:
-  - `Quadrant.getQuadrant(boolean urgent, boolean important)`: Returns the appropriate quadrant based on the urgency and importance of the task.
+- **Most useful static methods:**:
+  - `static Quadrant getQuadrant(boolean urgent, boolean important)`: Returns the appropriate quadrant based on the urgency and importance of the task.
+  - `static Quadrant[] quadrantsSorted(EQuadrantsSorting ordering)`: Returns all 4 `Quadrant` of an Eisenhower Matrix, sorted according different rules: `(Q1, Q2, Q3, Q4)` or `(Q1, Q3, Q2, Q4)`.
+
 
 
 ## Contributing
@@ -106,6 +114,7 @@ Contributions are welcome! Please follow these steps:
 4. Commit your changes (`git commit -am 'Add some feature'`).
 5. Push to the branch (`git push origin feature/your-feature`).
 6. Create a new Pull Request.
+
 
 
 ## License
